@@ -1,0 +1,59 @@
+# Docker Compose per Task Manager API
+# Definisce due servizi: un database Oracle e l'applicazione Spring Boot
+
+services:
+
+  # === DATABASE ORACLE ===
+  # Utilizza Oracle XE 21 (versione slim) come database relazionale
+  oracle-db:
+    image: gvenzl/oracle-xe:21-slim
+    container_name: oracle-db
+
+    # Credenziali e configurazione del database
+    environment:
+      ORACLE_PASSWORD: admin        # Password dell'utente SYSTEM
+      APP_USER: taskuser            # Utente applicativo creato automaticamente
+      APP_USER_PASSWORD: taskpass   # Password dell'utente applicativo
+
+    # Porta standard Oracle esposta sull'host
+    ports:
+      - "1521:1521"
+
+    # Volume persistente per i dati del database
+    volumes:
+      - oracle-data:/opt/oracle/oradata
+
+    # Healthcheck per verificare che Oracle sia pronto ad accettare connessioni
+    healthcheck:
+      test: ["CMD", "healthcheck.sh"]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+      start_period: 60s            # Oracle richiede tempo per l'avvio iniziale
+
+  # === APPLICAZIONE SPRING BOOT ===
+  # Task Manager API - si collega al database Oracle
+  task-manager-app:
+    build: .                        # Build dal Dockerfile nella directory corrente
+    container_name: task-manager-app
+
+    # Avvia l'app solo quando Oracle e' healthy (pronto)
+    depends_on:
+      oracle-db:
+        condition: service_healthy
+
+    # Configurazione connessione al database via variabili d'ambiente
+    environment:
+      DB_HOST: oracle-db            # Nome del servizio Docker (risolto via DNS interno)
+      DB_PORT: 1521
+      DB_SERVICE: XEPDB1
+      DB_USER: taskuser
+      DB_PASSWORD: taskpass
+
+    # Porta dell'applicazione esposta sull'host
+    ports:
+      - "8081:8081"
+
+# Volume named per persistenza dati Oracle tra riavvii dei container
+volumes:
+  oracle-data:

@@ -1,0 +1,47 @@
+spring:
+  application:
+    name: task-manager  # ← Meglio kebab-case (minuscolo con -)
+  
+  # ============================================
+  # CONFIGURAZIONE DATABASE ORACLE
+  # ============================================
+  datasource:
+    url: jdbc:oracle:thin:@${DB_HOST:localhost}:${DB_PORT:1521}/${DB_SERVICE:XEPDB1}
+    username: ${DB_USER:system}
+    password: ${DB_PASSWORD:admin}
+    driver-class-name: oracle.jdbc.OracleDriver
+  
+  # ============================================
+  # CONFIGURAZIONE JPA/HIBERNATE
+  # ============================================
+  jpa:
+    defer-datasource-initialization: true  # Ritarda l'inizializzazione del datasource fino a quando JPA è pronto 
+    hibernate:
+      ddl-auto: update  # Crea/aggiorna tabelle automaticamente
+    show-sql: true      # Mostra SQL nei log
+    properties:
+      hibernate:
+        format_sql: true     # Formatta SQL leggibile
+        dialect: org.hibernate.dialect.OracleDialect
+  
+  # ============================================
+  # INIZIALIZZAZIONE DATI (data.sql)
+  # ============================================
+  sql:
+    init:
+      mode: always  # Esegue data.sql sempre all'avvio
+
+# ============================================
+# CONFIGURAZIONE SERVER (PORTA!)
+# ============================================
+server:
+  port: 8081  # ← QUESTA È LA PORTA!
+
+# ============================================
+# LOGGING
+# ============================================
+logging:
+  level:
+    root: INFO
+    com.example.taskmanager: DEBUG  # ← Cambia con il tuo package
+    org.hibernate.SQL: DEBUG        # Mostra SQL
