@@ -1,6 +1,6 @@
 package com.example.task_manager.controller;
 
-import com.example.task_manager.Entity.Task;
+import com.example.task_manager.entity.Task;
 import com.example.task_manager.service.TaskService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

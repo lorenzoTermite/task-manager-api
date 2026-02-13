@@ -1,6 +1,6 @@
 package com.example.task_manager.repository;
 
-import com.example.task_manager.Entity.Task;
+import com.example.task_manager.entity.Task;
 
 import java.util.List;
 

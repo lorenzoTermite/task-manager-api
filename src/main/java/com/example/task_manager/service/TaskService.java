@@ -1,6 +1,6 @@
 package com.example.task_manager.service;
 
-import com.example.task_manager.Entity.Task;
+import com.example.task_manager.entity.Task;
 import com.example.task_manager.exception.TaskNotFoundException;
 import com.example.task_manager.repository.TaskRepository;
 import org.springframework.beans.factory.annotation.Autowired;
