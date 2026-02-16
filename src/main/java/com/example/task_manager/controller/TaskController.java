@@ -1,18 +1,21 @@
 package com.example.task_manager.controller;
 
-import com.example.task_manager.entity.Task;
+import com.example.task_manager.dto.TaskCreateRequest;
+import com.example.task_manager.dto.TaskResponse;
+import com.example.task_manager.dto.TaskUpdateRequest;
+
 import com.example.task_manager.service.TaskService;
+
+import jakarta.validation.Valid;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 @RestController  // ← @Controller + @ResponseBody (ritorna JSON)
 @RequestMapping("/api/tasks")  // ← Base path: tutti gli endpoint iniziano con /api/tasks
-@CrossOrigin(origins = "*")  // ← Permette chiamate da frontend (React, Angular, ecc.)
 public class TaskController {
     
     private final TaskService service;
@@ -27,8 +30,8 @@ public class TaskController {
     // Ottieni tutte le task
     // ============================================
     @GetMapping
-    public ResponseEntity<List<Task>> getAllTasks() {
-        List<Task> tasks = service.getAllTasks();
+    public ResponseEntity<List<TaskResponse>> getAllTasks() {
+        List<TaskResponse> tasks = service.getAllTasks();
         return ResponseEntity.ok(tasks);
     }
     
@@ -37,8 +40,8 @@ public class TaskController {
     // Ottieni task per IDS
     // ============================================
     @GetMapping("/{id:\\d+}")
-    public ResponseEntity<Task> getTaskById(@PathVariable Long id) {
-        Task task = service.getTaskById(id);
+    public ResponseEntity<TaskResponse> getTaskById(@PathVariable Long id) {
+        TaskResponse task = service.getTaskById(id);
         return ResponseEntity.ok(task);
         
         // Se task non esiste, TaskNotFoundException viene lanciata
@@ -50,8 +53,8 @@ public class TaskController {
     // Crea nuova task
     // ============================================
     @PostMapping
-    public ResponseEntity<Task> createTask(@RequestBody Task task) {
-        Task createdTask = service.createTask(task);
+    public ResponseEntity<TaskResponse> createTask(@Valid @RequestBody TaskCreateRequest request) {
+        TaskResponse createdTask = service.createTask(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdTask);
         //                            ^
         //                            └─ HTTP 201 Created
@@ -61,12 +64,12 @@ public class TaskController {
     // PUT /api/tasks/{id}
     // Aggiorna task esistente
     // ============================================
-    @PutMapping("/{id}")
-    public ResponseEntity<Task> updateTask(
+    @PutMapping("/{id:\\d+}")
+    public ResponseEntity<TaskResponse> updateTask(
             @PathVariable Long id,
-            @RequestBody Task task) {
+            @Valid @RequestBody TaskUpdateRequest request) {
         
-        Task updatedTask = service.updateTask(id, task);
+        TaskResponse updatedTask = service.updateTask(id, request);
         return ResponseEntity.ok(updatedTask);
     }
     
@@ -74,27 +77,21 @@ public class TaskController {
     // DELETE /api/tasks/{id}
     // Cancella task
     // ============================================
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Map<String, String>> deleteTask(@PathVariable Long id) {
-        service.deleteTask(id);
-        
-        // Risposta di conferma
-        Map<String, String> response = new HashMap<>();
-        response.put("message", "Task deleted successfully");
-        response.put("id", id.toString());
-        
-        return ResponseEntity.ok(response);
-    }
+          @DeleteMapping("/{id:\\d+}")
+      public ResponseEntity<Void> deleteTask(@PathVariable Long id) {
+          service.deleteTask(id);
+          return ResponseEntity.noContent().build();
+      }
     
     // ============================================
     // GET /api/tasks/search?keyword=xxx
     // Cerca task per keyword nel titolo
     // ============================================
     @GetMapping("/search")
-    public ResponseEntity<List<Task>> searchTasks(
+    public ResponseEntity<List<TaskResponse>> searchTasks(
             @RequestParam(name = "keyword") String keyword) {
         
-        List<Task> tasks = service.findByTitleContaining(keyword);
+        List<TaskResponse> tasks = service.findByTitleContaining(keyword);
         return ResponseEntity.ok(tasks);
     }
     
@@ -103,10 +100,10 @@ public class TaskController {
     // Filtra task per stato (completate/non completate)
     // ============================================
     @GetMapping("/status")
-    public ResponseEntity<List<Task>> getTasksByStatus(
+    public ResponseEntity<List<TaskResponse>> getTasksByStatus(
             @RequestParam(name = "completed") boolean completed) {
         
-        List<Task> tasks = service.findByCompleted(completed);
+        List<TaskResponse> tasks = service.findByCompleted(completed);
         return ResponseEntity.ok(tasks);
     }
     
@@ -114,28 +111,12 @@ public class TaskController {
     // GET /api/tasks/count?completed=true
     // Conta task per stato
     // ============================================
-    @GetMapping("/count")
-    public ResponseEntity<Map<String, Object>> countTasks(
-            @RequestParam(name = "completed") boolean completed) {
-        
-        long count = service.countByCompleted(completed);
-        
-        Map<String, Object> response = new HashMap<>();
-        response.put("completed", completed);
-        response.put("count", count);
-        
-        return ResponseEntity.ok(response);
-    }
+   @GetMapping("/count")
+      public ResponseEntity<Map<String, Object>> countTasks(
+              @RequestParam(name = "completed") boolean completed) {
+          long count = service.countByCompleted(completed);
+          return ResponseEntity.ok(Map.of("completed", completed, "count", count));
+      }
     
-    // ============================================
-    // GET /api/tasks/health
-    // Health check endpoint (utile per monitoring)
-    // ============================================
-    @GetMapping("/health")
-    public ResponseEntity<Map<String, String>> healthCheck() {
-        Map<String, String> response = new HashMap<>();
-        response.put("status", "UP");
-        response.put("service", "Task Manager API");
-        return ResponseEntity.ok(response);
-    }
+
 }
