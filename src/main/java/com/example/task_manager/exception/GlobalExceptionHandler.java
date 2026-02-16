@@ -9,15 +9,18 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.client.ResourceAccessException;
+ import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
-    
+      private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
     // ============================================
     // ECCEZIONI CUSTOM (Task-specific)
     // ============================================
@@ -107,10 +110,12 @@ public class GlobalExceptionHandler {
             PersistenceException ex,
             HttpServletRequest request) {
         
+        log.error("Database error on {} {}", request.getMethod(), request.getRequestURI(), ex); 
+
         ErrorResponse error = new ErrorResponse(
             HttpStatus.INTERNAL_SERVER_ERROR.value(),
             "Internal Server Error",
-            "Database error occurred: " + ex.getMessage(),
+            "Database error occurred: ",
             request.getRequestURI()
         );
         
@@ -195,10 +200,11 @@ public class GlobalExceptionHandler {
             ResourceAccessException ex,
             HttpServletRequest request) {
         
+                log.error("External service unavaible:{}",request.getRequestURI(),ex);
         ErrorResponse error = new ErrorResponse(
             HttpStatus.BAD_GATEWAY.value(),
             "Bad Gateway",
-            "External service unavailable: " + ex.getMessage(),
+            "External service unavailable: " ,
             request.getRequestURI()
         );
         
@@ -226,19 +232,35 @@ public ResponseEntity<ErrorResponse> handleMethodNotSupported(
     // ECCEZIONE GENERICA (CATCH-ALL)
     // ============================================
     
+  @ExceptionHandler(ObjectOptimisticLockingFailureException.class)
+  public ResponseEntity<ErrorResponse> handleOptimisticLock(
+          ObjectOptimisticLockingFailureException ex,
+          HttpServletRequest request) {
+
+      log.warn("Optimistic lock conflict on {}", request.getRequestURI());
+
+      ErrorResponse error = new ErrorResponse(
+          HttpStatus.CONFLICT.value(),
+          "Conflict",
+          "The resource was modified by another user. Please refresh and try again.",
+          request.getRequestURI()
+      );
+
+      return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
+  }
+  
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGeneralException(
             Exception ex,
             HttpServletRequest request) {
         
-        // Log dell'errore (dovresti usare un logger)
-        System.err.println("Unhandled exception: " + ex.getClass().getName());
-        ex.printStackTrace();
+       log.error("Unhandled exception on {} {}", request.getMethod(), request.getRequestURI(), ex);
         
+         log.error("External service unavailable on {}", request.getRequestURI(), ex);
         ErrorResponse error = new ErrorResponse(
             HttpStatus.INTERNAL_SERVER_ERROR.value(),
             "Internal Server Error",
-            "An unexpected error occurred: " + ex.getMessage(),
+            "An unexpected error occurred: " ,
             request.getRequestURI()
         );
         
