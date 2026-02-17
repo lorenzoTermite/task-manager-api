@@ -232,6 +232,7 @@ public ResponseEntity<ErrorResponse> handleMethodNotSupported(
     // ECCEZIONE GENERICA (CATCH-ALL)
     // ============================================
     
+    //Gestisce gli update concorrenziali
   @ExceptionHandler(ObjectOptimisticLockingFailureException.class)
   public ResponseEntity<ErrorResponse> handleOptimisticLock(
           ObjectOptimisticLockingFailureException ex,

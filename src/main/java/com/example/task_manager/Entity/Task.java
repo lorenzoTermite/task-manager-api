@@ -32,4 +32,15 @@ public class Task {
     protected void onCreate() {
         createdAt = LocalDateTime.now();
     }
+
+    @Version
+    private Long version;
+
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
+
+     @PreUpdate
+     protected void onUpdate() {
+     updatedAt = LocalDateTime.now();
+  }
 }

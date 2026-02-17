@@ -8,7 +8,9 @@ public record TaskResponse (
       String title,
       String description,
       boolean completed,
-      LocalDateTime createdAt
+      LocalDateTime createdAt,
+      Long version,
+      LocalDateTime updatedAt
 
 ){
     

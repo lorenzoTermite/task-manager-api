@@ -23,7 +23,9 @@ package com.example.task_manager.mapper;
               task.getTitle(),
               task.getDescription(),
               task.isCompleted(),
-              task.getCreatedAt()
+              task.getCreatedAt(),
+              task.getVersion(),
+              task.getUpdatedAt()
           );
       }
 
