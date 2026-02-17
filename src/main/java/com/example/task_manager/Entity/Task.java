@@ -43,5 +43,11 @@ public class Task {
      @PreUpdate
      protected void onUpdate() {
      updatedAt = LocalDateTime.now();
+
   }
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "assignee_id")
+     private User assignee;
+
 }
