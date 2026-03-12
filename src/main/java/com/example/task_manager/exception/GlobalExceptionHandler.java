@@ -69,7 +69,45 @@ public class GlobalExceptionHandler {
         
         return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
     }
-    
+     // ============================================
+    // ECCEZIONI CUSTOM (User-specific)
+    // ============================================
+
+  @ExceptionHandler(UserAlreadyExistsException.class)
+  public ResponseEntity<ErrorResponse> handleUserAlreadyExists(
+          UserAlreadyExistsException ex,
+          HttpServletRequest request) {
+
+      ErrorResponse error = new ErrorResponse(
+          HttpStatus.CONFLICT.value(),
+          "Conflict",
+          ex.getMessage(),
+          request.getRequestURI()
+      );
+
+      return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
+  }
+
+
+  @ExceptionHandler(UserNotFoundException.class)
+  public ResponseEntity<ErrorResponse> handleUserNotFound(
+          UserNotFoundException ex,
+          HttpServletRequest request) {
+
+      ErrorResponse error = new ErrorResponse(
+          HttpStatus.NOT_FOUND.value(),
+          "Not Found",
+          ex.getMessage(),
+          request.getRequestURI()
+      );
+
+      return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
+  }
+
+
+
+
+
     // ============================================
     // ECCEZIONI DATABASE
     // ============================================
